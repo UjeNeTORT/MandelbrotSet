@@ -10,6 +10,9 @@
 
 #define ASSERTS
 
+typedef unsigned long long ull;
+typedef unsigned char      uch; // should i use this instead of sf::uint8
+
 const int   WINDOW_WIDTH             = 1920;
 const int   WINDOW_HEIGHT            = 1080;
 const float MAX_N_ITERATIONS         = 200;
@@ -28,7 +31,14 @@ const int   STATS_STR_BUF_SIZE       = 100;
 void MandelbrotSetBruteForce (sf::Uint8 *pixels, int x_offset, int y_offset, float scale);
 void DrawStats               (int x_offset, int y_offset, float scale);
 
-unsigned long long GetTicks ();
+ull CheckPerformanceTicks (
+    void (*mandelbrot_func_ptr) (sf::Uint8 *, int, int, float),
+    sf::Uint8 *pixels,
+    int        x_offset,
+    int        y_offset,
+    float      scale
+);
+ull GetTicks ();
 
 int main ()
 {
@@ -129,6 +139,8 @@ exit:
 
         MandelbrotSetBruteForce (pixels, x_offset, y_offset, scale);
 
+        printf ("%lld\n", CheckPerformanceTicks (&MandelbrotSetBruteForce, pixels, x_offset, y_offset, scale));
+
         texture.update (pixels);
 
         window.clear ();
@@ -212,6 +224,17 @@ unsigned long long GetTicks ()
     );
 
     return (ticks_rdx << 32) | ticks_rax;
+}
+
+unsigned long long CheckPerformanceTicks (void (*mandelbrot_func_ptr)(sf::Uint8*, int, int, float), sf::Uint8* pixels, int x_offset, int y_offset, float scale)
+{
+    unsigned long long delta_t = - GetTicks ();
+
+    mandelbrot_func_ptr (pixels, x_offset, y_offset, scale);
+
+    delta_t += GetTicks ();
+
+    return delta_t;
 }
 
 void DrawStats (int x_offset, int y_offset, float scale)
