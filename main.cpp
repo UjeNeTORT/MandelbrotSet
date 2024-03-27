@@ -10,8 +10,8 @@
 
 #define ASSERTS
 
-const int WINDOW_WIDTH               = 1920;
-const int WINDOW_HEIGHT              = 1080;
+const int   WINDOW_WIDTH             = 1920;
+const int   WINDOW_HEIGHT            = 1080;
 const float MAX_N_ITERATIONS         = 200;
 const float SQR_RADIUS_MAX           = 100;
 
@@ -19,17 +19,18 @@ const int   DFLT_X_OFFSET            = 0;
 const int   DFLT_Y_OFFSET            = 0;
 const float DFLT_SCALE               = 333.0f;
 
-const int   UNIVERSAL_OFFSET_FACTOR  = 100;
+const int   X_OFFSET_FACTOR          = 100;
+const int   Y_OFFSET_FACTOR          = 100;
 const float LEGENDARY_THREE_QUARTERS = 0.75f;
 
-const int STATS_STR_BUF_SIZE         = 100;
+const int   STATS_STR_BUF_SIZE       = 100;
 
 void MandelbrotSetBruteForce (sf::Uint8 *pixels, int x_offset, int y_offset, float scale);
 void DrawStats               (int x_offset, int y_offset, float scale);
 
 int main ()
 {
-    sf::RenderWindow window (sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Gods thumbprint");
+    sf::RenderWindow window (sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Mandelbrot");
 
     sf::Uint8 *pixels = (sf::Uint8 *) calloc (WINDOW_WIDTH * WINDOW_HEIGHT * 4, sizeof (sf::Uint8));
 
@@ -52,6 +53,7 @@ int main ()
             case (sf::Event::Closed):
 
 exit:
+                LOG("quit...");
                 window.close ();
                 break;
 
@@ -60,25 +62,25 @@ exit:
                 switch (event.key.code)
                 {
                 case (sf::Keyboard::Left):
-                    x_offset -= UNIVERSAL_OFFSET_FACTOR;
+                    x_offset -= X_OFFSET_FACTOR;
 
                     LOG ("x_offset has been decreased (%d)", x_offset);
                     break;
 
                 case (sf::Keyboard::Right):
-                    x_offset += UNIVERSAL_OFFSET_FACTOR;
+                    x_offset += X_OFFSET_FACTOR;
 
                     LOG ("x_offset has been increased (%d)", x_offset);
                     break;
 
                 case (sf::Keyboard::Up):
-                    y_offset -= UNIVERSAL_OFFSET_FACTOR;
+                    y_offset -= Y_OFFSET_FACTOR;
 
                     LOG ("y_offset has been decreased (%d)", y_offset);
                     break;
 
                 case (sf::Keyboard::Down):
-                    y_offset += UNIVERSAL_OFFSET_FACTOR;
+                    y_offset += Y_OFFSET_FACTOR;
 
                     LOG ("y_offset has been increased (%d)", y_offset);
                     break;
@@ -108,7 +110,6 @@ exit:
                     goto exit;
 
                 default:
-
                     break;
                 }
 
@@ -138,14 +139,14 @@ void MandelbrotSetBruteForce (sf::Uint8 *pixels, int x_offset, int y_offset, flo
     #ifdef ASSERTS
 
     assert (pixels);
-    assert (!dbleq (scale, 0.f));
+    assert (!dbleq (scale, .0f));
 
     #endif // ASSERTS
 
     sf::Uint8 color[4] = {}; // current pixel color
 
-    int delta_x = WINDOW_WIDTH / 2 - x_offset,
-        delta_y = WINDOW_HEIGHT / 2 - y_offset;
+    int delta_x = WINDOW_WIDTH  / 2,
+        delta_y = WINDOW_HEIGHT / 2;
 
     for (int y_px = -delta_y; y_px < WINDOW_HEIGHT - delta_y; y_px++)
     {
@@ -156,8 +157,8 @@ void MandelbrotSetBruteForce (sf::Uint8 *pixels, int x_offset, int y_offset, flo
             int n_iterations = 0;
             while (n_iterations < MAX_N_ITERATIONS && x2 + y2 < SQR_RADIUS_MAX)
             {
-                xn = x2 - y2 + x_px / scale;
-                yn = 2 * xy  + y_px / scale;
+                xn = x2 - y2 + x_px / scale + x_offset / scale;
+                yn = 2 * xy  + y_px / scale + y_offset / scale;
 
                 x2 = xn * xn;
                 y2 = yn * yn;
