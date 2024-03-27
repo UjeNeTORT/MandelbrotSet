@@ -28,6 +28,8 @@ const int   STATS_STR_BUF_SIZE       = 100;
 void MandelbrotSetBruteForce (sf::Uint8 *pixels, int x_offset, int y_offset, float scale);
 void DrawStats               (int x_offset, int y_offset, float scale);
 
+unsigned long long GetTicks ();
+
 int main ()
 {
     sf::RenderWindow window (sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Mandelbrot");
@@ -197,6 +199,19 @@ void MandelbrotSetBruteForce (sf::Uint8 *pixels, int x_offset, int y_offset, flo
     }
 
     return;     // void
+}
+
+unsigned long long GetTicks ()
+{
+    unsigned long long ticks_rax = 0;
+    unsigned long long ticks_rdx = 0;
+
+    asm volatile (
+        "rdtsc\n\t"
+        : "=a" (ticks_rax), "=d" (ticks_rdx)
+    );
+
+    return (ticks_rdx << 32) | ticks_rax;
 }
 
 void DrawStats (int x_offset, int y_offset, float scale)
