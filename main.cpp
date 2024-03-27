@@ -19,8 +19,8 @@ const int   DFLT_X_OFFSET            = 0;
 const int   DFLT_Y_OFFSET            = 0;
 const float DFLT_SCALE               = 333.0f;
 
-const int   X_OFFSET_FACTOR          = 100;
-const int   Y_OFFSET_FACTOR          = 100;
+const int   X_OFFSET_FACTOR          = WINDOW_WIDTH  * 0.1;
+const int   Y_OFFSET_FACTOR          = WINDOW_HEIGHT * 0.1;
 const float LEGENDARY_THREE_QUARTERS = 0.75f;
 
 const int   STATS_STR_BUF_SIZE       = 100;
@@ -34,8 +34,9 @@ int main ()
 
     sf::Uint8 *pixels = (sf::Uint8 *) calloc (WINDOW_WIDTH * WINDOW_HEIGHT * 4, sizeof (sf::Uint8));
 
-    int x_offset = DFLT_X_OFFSET, y_offset = DFLT_Y_OFFSET;
-    float scale = DFLT_SCALE;
+    int x_offset = DFLT_X_OFFSET,
+        y_offset = DFLT_Y_OFFSET;
+    float scale  = DFLT_SCALE;
 
     sf::Texture texture;
     texture.create (WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -87,12 +88,16 @@ exit:
 
                 case (sf::Keyboard::Comma):
                     scale *= LEGENDARY_THREE_QUARTERS;
+                    x_offset *= LEGENDARY_THREE_QUARTERS;
+                    y_offset *= LEGENDARY_THREE_QUARTERS;
 
                     LOG ("scale has been decreased (%lg)", scale);
                     break;
 
                 case (sf::Keyboard::Period):
                     scale /= LEGENDARY_THREE_QUARTERS;
+                    x_offset /= LEGENDARY_THREE_QUARTERS;
+                    y_offset /= LEGENDARY_THREE_QUARTERS;
 
                     LOG ("scale has been increased (%lg)", scale);
                     break;
@@ -157,8 +162,8 @@ void MandelbrotSetBruteForce (sf::Uint8 *pixels, int x_offset, int y_offset, flo
             int n_iterations = 0;
             while (n_iterations < MAX_N_ITERATIONS && x2 + y2 < SQR_RADIUS_MAX)
             {
-                xn = x2 - y2 + x_px / scale + x_offset / scale;
-                yn = 2 * xy  + y_px / scale + y_offset / scale;
+                xn = x2 - y2 + (x_px + x_offset) / scale;
+                yn = 2 * xy  + (y_px + y_offset) / scale;
 
                 x2 = xn * xn;
                 y2 = yn * yn;
