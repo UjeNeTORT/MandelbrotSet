@@ -8,19 +8,28 @@ SFML_STUFF = -l sfml-graphics -l sfml-window -l sfml-system
 
 CPP = g++
 SRC_NAME  = main
-EXEC_NAME = mandelbrot
+EXEC_NAME = mandelbrot.out
 
-start: $(SRC_NAME).o common.o
-	$(CPP) $(SRC_NAME).o common.o -o $(EXEC_NAME) $(SFML_STUFF) $(C_FLAGS)
+start: $(SRC_NAME).o common.o mandelbrot.o tests.o
+	$(CPP) $(SRC_NAME).o common.o mandelbrot.o tester.o -o $(EXEC_NAME) $(SFML_STUFF) $(C_FLAGS)
 
-go:
+run:
 	./$(EXEC_NAME)
+
+test:
+	./$(EXEC_NAME) --test-performance
 
 $(SRC_NAME).o: ./$(SRC_NAME).cpp
 	$(CPP) ./$(SRC_NAME).cpp -c -o $(SRC_NAME).o
 
-common.o: ./common/.*
+common.o: ./common/*.*
 	$(CPP) ./common/common.cpp -c -o common.o
+
+mandelbrot.o: ./mandelbrot/*.*
+	$(CPP) ./mandelbrot/mandelbrot.cpp -c -o mandelbrot.o
+
+tests.o: ./tests/*.*
+	$(CPP) ./tests/tester.cpp -c -o tester.o
 
 clean:
 	rm -f $(EXEC_NAME)
