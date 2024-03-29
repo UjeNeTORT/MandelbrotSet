@@ -16,11 +16,14 @@
 
 #include "colors.h"
 
-#define LOGGING
-
 const double EPS = 1e-7;
 
 const int USER_ANSW_SIZE = 10;
+
+#define LOGS
+// #define LOGS_DETAILED
+#define DEBUG_PRINTFS_DETAILED
+#define ERROR_PRINTFS_DETAILED
 
 #define streq(s1, s2) (!strcmp ((s1), (s2)))
 #define dbleq(d1, d2) (fabs((d1) - (d2)) < EPS)
@@ -37,19 +40,19 @@ const int USER_ANSW_SIZE = 10;
 }                                                            \
     // system("shutdown -P now");
 
-int PrintfDebug   (const char* funcname, int line, const char* filename, const char* format, ...); // todo COPYPASTE, need single unique function
-int PrintfError   (const char* funcname, int line, const char* filename, const char* format, ...); // todo COPYPASTE, need single unique function
-int PrintfLog (const char* funcname, int line, const char* filename, const char* format, ...); // todo COPYPASTE, need single unique function
+int PrintfDebug   (const char* funcname, int line, const char* filename, const char* format, ...);
+int PrintfError   (const char* funcname, int line, const char* filename, const char* format, ...);
+int PrintfLog     (const char* funcname, int line, const char* filename, const char* format, ...);
 
 #define PRINTF_DEBUG(format, ...) \
     PrintfDebug (__FUNCTION__, __LINE__, __FILE__, format __VA_OPT__(,) __VA_ARGS__)
 
-#ifdef LOGGING
+#ifdef LOGS
     #define LOG(format, ...) \
     PrintfLog (__FUNCTION__, __LINE__, __FILE__, format __VA_OPT__(,) __VA_ARGS__)
-#else // LOGGING
+#else // LOGS
     #define LOG(format, ...) ;
-#endif // LOGGING
+#endif // LOGS
 
 #define ERROR(format, ...) \
     PrintfError (__FUNCTION__, __LINE__, __FILE__, format __VA_OPT__(,) __VA_ARGS__)
@@ -60,5 +63,7 @@ int PrintfLog (const char* funcname, int line, const char* filename, const char*
 
 int CheckExtension (char* filename);
 int DelExtension   (char* filename);
+
+int PrintProgressBar (unsigned count, unsigned max);
 
 #endif // TOOLS_H

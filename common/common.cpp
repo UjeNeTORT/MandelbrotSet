@@ -19,7 +19,13 @@ int PrintfDebug (const char * funcname, int line, const char * filename, const c
     assert (filename);
     assert (format);
 
-    fprintf (stderr, GREEN_CLR "[DEBUG | %s:%d %s]\n<< ", funcname, line, filename);
+    #ifdef DEBUG_PRINTFS_DETAILED
+        fprintf (stderr, GREEN_CLR "[DEBUG | %s:%d %s]\n<< ", funcname, line, filename);
+    #else
+        fprintf (stderr, GREEN_CLR "[DEBUG] ");
+    #endif // DEBUG_PRINTFS_DETAILED
+
+
 
     va_list ptr;
 
@@ -40,7 +46,11 @@ int PrintfError (const char * funcname, int line, const char * filename, const c
     assert (filename);
     assert (format);
 
-    fprintf (stderr, RED_CLR "[%s:%d %s]\nERROR! ", funcname, line, filename);
+    #ifdef ERROR_PRINTFS_DETAILED
+        fprintf (stderr, RED_CLR "[%s:%d %s]\nERROR! ", funcname, line, filename);
+    #else
+        fprintf (stderr, RED_CLR "[ERROR] ");
+    #endif // ERROR_PRINTFS_DETAILED
 
     va_list ptr;
 
@@ -61,7 +71,11 @@ int PrintfLog (const char * funcname, int line, const char * filename, const cha
     assert (filename);
     assert (format);
 
-    fprintf (stderr, CYAN_CLR "[log message from %s:%d %s] ", funcname, line, filename);
+    #ifdef LOGS_DETAILED
+        fprintf (stderr, CYAN_CLR "[log from %s:%d %s] ", funcname, line, filename);
+    #else
+        fprintf (stderr, CYAN_CLR "[LOG] ");
+    #endif // LOGS_DETAILED
 
     va_list ptr;
 
@@ -74,4 +88,28 @@ int PrintfLog (const char * funcname, int line, const char * filename, const cha
     fprintf (stdout, RST_CLR "\n" );
 
     return res;
+}
+
+// unfinished
+int PrintProgressBar (unsigned curr_progress, unsigned max_progress)
+{
+    assert (curr_progress <= max_progress);
+    // assert (max != 0);
+
+    const char prefix[]    = "---[";
+    const char suffix[]    = "]---";
+
+    const int  prefix_size = sizeof (prefix) - 1;
+    const int  suffix_size = sizeof (suffix) - 1;
+
+    char progress_bar[max_progress] = {};
+
+    for (unsigned i = 0; i < max_progress; i++)
+    {
+        progress_bar[i] = (i <= curr_progress) ? '#' : '_';
+    }
+
+    fprintf (stderr, "\r%s%s%s", prefix, progress_bar, suffix);
+
+    return 0;
 }
