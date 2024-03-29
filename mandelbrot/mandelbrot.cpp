@@ -97,7 +97,8 @@ exit:
                 break;
             }
 
-        MandelbrotSetBruteForce (pixels, x_offset, y_offset, scale);
+        // MandelbrotSetBruteForce (pixels, x_offset, y_offset, scale);
+        MandelbrotSetVectorized (pixels, x_offset, y_offset, scale);
 
         texture.update (pixels);
 
@@ -113,29 +114,32 @@ exit:
 
 void MandelbrotSetBruteForce (sf::Uint8 *pixels, int x_offset, int y_offset, float scale)
 {
-    #ifdef ASSERTS
-
     assert (pixels);
     assert (!dbleq (scale, .0f));
-
-    #endif // ASSERTS
 
     sf::Uint8 color[4] = {}; // current pixel color
 
     int delta_x = WINDOW_WIDTH  / 2,
         delta_y = WINDOW_HEIGHT / 2;
 
-    for (int y_px = -delta_y; y_px < WINDOW_HEIGHT - delta_y; y_px++)
+    float y0 = (-delta_y + y_offset) / scale;
+
+    float dx = 1.0f / scale;
+    float dy = 1.0f / scale;
+
+    for (int y_px = -delta_y; y_px < WINDOW_HEIGHT - delta_y; y_px++, y0 += dy)
     {
-        for (int x_px = -delta_x; x_px < WINDOW_WIDTH - delta_x; x_px++)
+        float x0 = (-delta_x + x_offset) / scale;
+
+        for (int x_px = -delta_x; x_px < WINDOW_WIDTH - delta_x; x_px++, x0 += dx)
         {
             float xn = 0, yn = 0, x2 = 0, y2 = 0, xy = 0;
 
             int n_iterations = 0;
             while (n_iterations < MAX_N_ITERATIONS && x2 + y2 < SQR_RADIUS_MAX)
             {
-                xn = x2 - y2 + (x_px + x_offset) / scale;
-                yn = 2 * xy  + (y_px + y_offset) / scale;
+                xn = x2 - y2 + x0;
+                yn = 2 * xy  + y0;
 
                 x2 = xn * xn;
                 y2 = yn * yn;
@@ -173,22 +177,80 @@ void MandelbrotSetBruteForce (sf::Uint8 *pixels, int x_offset, int y_offset, flo
 
 void MandelbrotSetVectorized (sf::Uint8 *pixels, int x_offset, int y_offset, float scale)
 {
-    #ifdef ASSERTS
-
     assert (pixels);
     assert (!dbleq (scale, .0f));
-
-    #endif // ASSERTS
 
     sf::Uint8 color[4] = {}; // current pixel color
 
     int delta_x = WINDOW_WIDTH  / 2,
         delta_y = WINDOW_HEIGHT / 2;
 
-    for (int y_px = -delta_y; y_px < WINDOW_HEIGHT - delta_y; y_px++)
+    float y0 = (-delta_y + y_offset) / scale;
+
+    float dx = 1.0f / scale;
+    float dy = 1.0f / scale;
+
+    for (int y_px = -delta_y; y_px < WINDOW_HEIGHT - delta_y; y_px++, y0 += dy)
     {
-        for (int x_px = -delta_x; x_px < WINDOW_WIDTH - delta_x; x_px++)
+        float x0 = (-delta_x + x_offset) / scale;
+
+        for (int x_px = -delta_x; x_px < WINDOW_WIDTH - delta_x; x_px+=8, x0 += dx * 8)
         {
+            __m256 _01234567   = _mm256_set_ps (0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f);
+            __m256 dx_01234567 = _mm256_set1_ps (dx);
+            dx_01234567        = _mm256_mul_ps (_01234567, dx_01234567);
+
+            __m256 r2 = _mm256_set1_ps (0);
+            __m256 x2 = _mm256_set1_ps (0);
+            __m256 y2 = _mm256_set1_ps (0);
+            __m256 xy = _mm256_set1_ps (0);
+
+            __m256 xn = _mm256_set1_ps (x0);
+            __m256 yn = _mm256_set1_ps (y0);
+
+            xn = _mm256_add_ps (xn, dx_01234567);
+
+            unsigned mask = -1;
+            int n_iterations = 0;
+
+            while (n_iterations < MAX_N_ITERATIONS && mask)
+            {
+                xn = x2 - y2 + x0;
+                yn = 2 * xy  + y0;
+
+                x2 = _mm256_mul_ps (xn, xn);
+                y2 = _mm256_mul_ps (yn, yn);
+                xy = _mm256_mul_ps (xn, yn);
+
+                r2 = _mm256_add_ps (x2, y2);
+
+                mask =_mm256_movemask_ps (_mm256_cmp_ps (
+                                            r2, _mm256_set1_ps (SQR_RADIUS_MAX), _CMP_LE_OQ));
+
+                n_iterations++;
+            }
+
+            // in case of unstable dots behaviour - determine dot color
+            // else                               - paint black
+            if (n_iterations < MAX_N_ITERATIONS)
+            {
+                float color_coeff = (float) n_iterations / MAX_N_ITERATIONS;
+
+                color[0] = (sf::Uint8) 255 - color_coeff * 255;
+                color[1] = (sf::Uint8) 1 / (color_coeff) * 255;
+                color[2] = (sf::Uint8) sqrtf (sqrtf(1 / color_coeff)) * 50;
+                color[3] = 255;
+            }
+            else
+            {
+                color[0] = 0;   // r
+                color[1] = 0;   // g
+                color[2] = 0;   // b
+                color[3] = 0;   // a
+            }
+
+            int pixels_pos = ((y_px + delta_y) * WINDOW_WIDTH + (x_px + delta_x)) * 4;
+            memcpy (pixels + pixels_pos, color, sizeof (color) * 8);
         }
     }
 

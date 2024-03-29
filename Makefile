@@ -6,6 +6,8 @@ C_FLAGS = -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-eq
 
 SFML_STUFF = -l sfml-graphics -l sfml-window -l sfml-system
 
+AVX_STUFF  = -mavx2
+
 CPP = g++
 SRC_NAME  = main
 EXEC_NAME = mandelbrot.out
@@ -26,7 +28,7 @@ common.o: ./common/*.*
 	$(CPP) ./common/common.cpp -c -o common.o
 
 mandelbrot.o: ./mandelbrot/*.*
-	$(CPP) ./mandelbrot/mandelbrot.cpp -c -o mandelbrot.o
+	$(CPP) ./mandelbrot/mandelbrot.cpp -c -o mandelbrot.o $(AVX_STUFF)
 
 tests.o: ./tests/*.*
 	$(CPP) ./tests/tester.cpp -c -o tester.o
