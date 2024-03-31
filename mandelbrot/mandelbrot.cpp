@@ -232,15 +232,17 @@ void MandelbrotSetVectorized (u_char *pixels, int x_offset, int y_offset, float 
                 n_iterations++;
             }
 
-            int *n_iterations_arr = (int *) &n_iterations_vec;
+            __m256i n_iterations_16_vec = _mm256_mod_base_2_epi32 (n_iterations_vec, 4);
+
+            int *n_iterations_16 = (int *) &n_iterations_16_vec;
 
             for (size_t rel_pixel_n = 0; rel_pixel_n < sizeof (__m256) / sizeof (float); rel_pixel_n++)
             {
                 u_char color[4] = {0, 0, 0, 255};
 
-                int n_iter_16 = n_iterations_arr[rel_pixel_n] % 16;
+                int n_iter_16 = n_iterations_16[rel_pixel_n];
 
-                if (n_iterations_arr[rel_pixel_n] < MAX_N_ITERATIONS)
+                if (((int *)&n_iterations_vec)[rel_pixel_n] < MAX_N_ITERATIONS)
                 {
                     color[0] = MANDELBROT_RGB_GRAD[n_iter_16][0];
                     color[1] = MANDELBROT_RGB_GRAD[n_iter_16][1];
@@ -255,4 +257,13 @@ void MandelbrotSetVectorized (u_char *pixels, int x_offset, int y_offset, float 
     }
 
     return;     // void
+}
+
+/**
+ * get n % (2 ^ n) for each n in A
+ *
+*/
+static inline __m256i _mm256_mod_base_2_epi32 (__m256i A, const int n)
+{
+    return _mm256_sub_epi32 (A, _mm256_slli_epi32 (_mm256_srai_epi32 (A, n), n));
 }

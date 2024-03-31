@@ -59,4 +59,4 @@ int  MandelbrotUI ();
 void MandelbrotSetBruteForce (u_char *pixels, int x_offset, int y_offset, float scale);
 void MandelbrotSetVectorized (u_char *pixels, int x_offset, int y_offset, float scale);
 
-u_char * const GetPixelColor (int n_iterations, int max_n_iterations);
+static inline __m256i _mm256_mod_base_2_epi32 (__m256i A, const int n);
