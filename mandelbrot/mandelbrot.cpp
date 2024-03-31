@@ -232,30 +232,19 @@ void MandelbrotSetVectorized (u_char *pixels, int x_offset, int y_offset, float 
                 n_iterations++;
             }
 
-            __m256 clr_quotients_vec = _mm256_div_ps (_mm256_cvtepi32_ps (n_iterations_vec), _mm256_set1_ps (MAX_N_ITERATIONS));
-
-            float *clr_quotients = (float *) &clr_quotients_vec;
+            int *n_iterations_arr = (int *) &n_iterations_vec;
 
             for (size_t rel_pixel_n = 0; rel_pixel_n < sizeof (__m256) / sizeof (float); rel_pixel_n++)
             {
                 u_char color[4] = {0, 0, 0, 255};
 
-                float clr_coeff = clr_quotients[rel_pixel_n];
+                int n_iter_16 = n_iterations_arr[rel_pixel_n] % 16;
 
-                if (!dbleq (clr_coeff, 1))
+                if (n_iterations_arr[rel_pixel_n] < MAX_N_ITERATIONS)
                 {
-                    if (clr_coeff > 0.3)
-                    {
-                        color[0] = (u_char) (clr_coeff * 0);
-                        color[1] = (u_char) (clr_coeff * 500);
-                        color[2] = (u_char) (clr_coeff * 0);
-                    }
-                    else
-                    {
-                        color[0] = (u_char) (clr_coeff * 200);
-                        color[1] = (u_char) (clr_coeff * 600);
-                        color[2] = (u_char) (clr_coeff * 200);
-                    }
+                    color[0] = MANDELBROT_RGB_GRAD[n_iter_16][0];
+                    color[1] = MANDELBROT_RGB_GRAD[n_iter_16][1];
+                    color[2] = MANDELBROT_RGB_GRAD[n_iter_16][2];
                 }
 
                 size_t pixels_pos = (y_px * WINDOW_WIDTH + x_px + rel_pixel_n) * 4;
