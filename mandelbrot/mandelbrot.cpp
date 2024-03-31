@@ -260,7 +260,7 @@ void MandelbrotSetVectorized (u_char *pixels, int x_offset, int y_offset, float 
 }
 
 /**
- * get n % (2 ^ n) for each n in A
+ * get i % (2 ^ n) for each i in A
  *
 */
 static inline __m256i _mm256_mod_base_2_epi32 (__m256i A, const int n)
