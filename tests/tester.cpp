@@ -3,14 +3,21 @@
 PerformanseTestResult PerformanceTest (
     const char * const test_results_fpath,
     const char * const test_cases_fpath,
-    uch                *pixels,
-    void (*fptr)(uch *, int, int, float)
+    const char * const tests_name,
+    u_char             *pixels,
+    void (*mandelbrot_func_ptr)(u_char *, int, int, float)
 )
 {
+    assert (test_results_fpath);
+    assert (test_cases_fpath);
+    assert (tests_name);
+    assert (pixels);
+    assert (mandelbrot_func_ptr);
+
     PerformanseTestResult ret_code = TEST_SUCCESSFUL;
 
-    FILE *test_results_file  = fopen (test_results_fpath, "w");
-    FILE *test_cases_file    = fopen (test_cases_fpath, "r");
+    FILE *test_results_file  = fopen (test_results_fpath, "a");
+    FILE *test_cases_file    = fopen (test_cases_fpath,   "r");
 
     ull test_results[MAX_N_TESTS]    = {};
     int test_cases  [MAX_N_TESTS][3] = {};
@@ -35,17 +42,22 @@ PerformanseTestResult PerformanceTest (
         goto cleanup_and_return;
     }
 
+    LOG ("reading testacases...");
+
     if (n_tests != ReadTestCases (test_cases_file, test_cases))
     {
         ret_code = TEST_WRNG_DATA;
-        goto cleanup_and_return;     // toask if it is ok
+        goto cleanup_and_return;
     }
 
-    LOG ("performance testing is on...");
+    LOG ("performance testing is on...\n");
+
     for (int n_test = 0; n_test < n_tests; n_test++)
     {
+        PrintProgressBar (n_test, n_tests);
+
         test_results[n_test] =  CheckPerformanceTicks (
-                                    fptr,
+                                    mandelbrot_func_ptr,
                                     pixels,
                                     *(int *)(test_cases + n_test * sizeof (int [3]) + 0 * sizeof (int)),
                                     *(int *)(test_cases + n_test * sizeof (int [3]) + 1 * sizeof (int)),
@@ -59,17 +71,16 @@ PerformanseTestResult PerformanceTest (
 
     // write test results
 
-    fprintf (test_results_file, "test_result\n");
+    fprintf (test_results_file, "%s, ", tests_name);
 
     for (int n_result = 0; n_result < n_tests; n_result++)
-    {
-        int ret_val_printf = fprintf (test_results_file, "%lld \n", test_results[n_result]);
-        if (ret_val_printf == 0)
+        if (fprintf (test_results_file, "%lld, ", test_results[n_result]) == 0)
         {
             ret_code = TEST_OUTPUT_ERR;
             goto cleanup_and_return;
         }
-    }
+
+    fprintf (test_results_file, "\n");
 
     LOG ("test results stored at \"%s\"\n", test_results_fpath);
 
@@ -81,7 +92,7 @@ cleanup_and_return:
     return ret_code;
 }
 
-ull CheckPerformanceTicks (void (*mandelbrot_func_ptr)(uch *, int, int, float), uch * pixels, int x_offset, int y_offset, float scale)
+ull CheckPerformanceTicks (void (*mandelbrot_func_ptr)(u_char *, int, int, float), u_char * pixels, int x_offset, int y_offset, float scale)
 {
     ull delta_t = -GetTicks ();
 
