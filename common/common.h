@@ -18,7 +18,7 @@
 
 const double EPS = 1e-7;
 
-const int USER_ANSW_SIZE = 10;
+const int PROGRESS_BAR_LENGTH = 50;
 
 #define LOGS
 // #define LOGS_DETAILED

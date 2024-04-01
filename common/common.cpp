@@ -90,26 +90,21 @@ int PrintfLog (const char * funcname, int line, const char * filename, const cha
     return res;
 }
 
-// unfinished
 int PrintProgressBar (unsigned curr_progress, unsigned max_progress)
 {
     assert (curr_progress <= max_progress);
     // assert (max != 0);
 
-    const char prefix[]    = "---[";
-    const char suffix[]    = "]---";
+    const char prefix[] = "---[";
+    const char suffix[] = "]---";
 
-    const int  prefix_size = sizeof (prefix) - 1;
-    const int  suffix_size = sizeof (suffix) - 1;
+    char progress_bar[PROGRESS_BAR_LENGTH + 1] = {};
 
-    char progress_bar[max_progress] = {};
+    for (size_t i = 0; i < PROGRESS_BAR_LENGTH; i++)
+        progress_bar[i] = (i * max_progress <= curr_progress * PROGRESS_BAR_LENGTH) ? '#' : '_';
 
-    for (unsigned i = 0; i < max_progress; i++)
-    {
-        progress_bar[i] = (i <= curr_progress) ? '#' : '_';
-    }
-
-    fprintf (stderr, "\r%s%s%s", prefix, progress_bar, suffix);
+    fprintf (stderr, "\r%s%s%s (%d/%d)",
+                    prefix, progress_bar, suffix, curr_progress, max_progress);
 
     return 0;
 }
