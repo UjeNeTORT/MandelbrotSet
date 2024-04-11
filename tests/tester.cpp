@@ -19,8 +19,8 @@ PerformanseTestResult PerformanceTest (
     FILE *test_results_file  = fopen (test_results_fpath, "a");
     FILE *test_cases_file    = fopen (test_cases_fpath,   "r");
 
-    ull test_results[MAX_N_TESTS]    = {};
-    int test_cases  [MAX_N_TESTS][3] = {};
+    ull *test_results  = (ull *) calloc (MAX_N_TESTS, sizeof (ull));
+    int *test_cases    = (int *) calloc (MAX_N_TESTS, N_TEST_CASE_PARAMS * sizeof (int));
 
     int n_tests = 0;
 
@@ -42,7 +42,7 @@ PerformanseTestResult PerformanceTest (
         goto cleanup_and_return;
     }
 
-    LOG ("reading testacases...");
+    LOG ("reading testcases...");
 
     if (n_tests != ReadTestCases (test_cases_file, test_cases))
     {
@@ -59,9 +59,9 @@ PerformanseTestResult PerformanceTest (
         test_results[n_test] =  CheckPerformanceTicks (
                                     mandelbrot_func_ptr,
                                     pixels,
-                                    *(int *)(test_cases + n_test * sizeof (int [3]) + 0 * sizeof (int)),
-                                    *(int *)(test_cases + n_test * sizeof (int [3]) + 1 * sizeof (int)),
-                                    *(int *)(test_cases + n_test * sizeof (int [3]) + 2 * sizeof (int))
+                                    *(test_cases + n_test * N_TEST_CASE_PARAMS + 0),
+                                    *(test_cases + n_test * N_TEST_CASE_PARAMS + 1),
+                                    *(test_cases + n_test * N_TEST_CASE_PARAMS + 2)
                                 );
 
         PrintProgressBar (n_test + 1, n_tests);
@@ -86,15 +86,18 @@ PerformanseTestResult PerformanceTest (
 
 cleanup_and_return:
 
+    free (test_cases);
+    free (test_results);
+
     fclose (test_cases_file);
     fclose (test_results_file);
 
     return ret_code;
 }
 
-ull CheckPerformanceTicks (void (*mandelbrot_func_ptr)(u_char *, int, int, float), u_char * pixels, int x_offset, int y_offset, float scale)
+int64_t CheckPerformanceTicks (void (*mandelbrot_func_ptr)(u_char *, int, int, float), u_char * pixels, int x_offset, int y_offset, float scale)
 {
-    ull delta_t = -GetTicks ();
+    int64_t delta_t = -GetTicks ();
 
     mandelbrot_func_ptr (pixels, x_offset, y_offset, scale);
 
@@ -103,14 +106,17 @@ ull CheckPerformanceTicks (void (*mandelbrot_func_ptr)(u_char *, int, int, float
     return delta_t;
 }
 
-int ReadTestCases (FILE *fin, int testcases[][3])
+int ReadTestCases (FILE *fin, int *testcases)
 {
     int n_tests = 0;
 
-    while (fscanf (fin, "%d %d %d\n", (int *)(testcases + n_tests * sizeof (int [3]) + 0 * sizeof (int)),
-                                      (int *)(testcases + n_tests * sizeof (int [3]) + 1 * sizeof (int)),
-                                      (int *)(testcases + n_tests * sizeof (int [3]) + 2 * sizeof (int))) == 3)
+    while (fscanf (fin, "%d %d %d\n", (testcases + n_tests * N_TEST_CASE_PARAMS + 0),
+                                      (testcases + n_tests * N_TEST_CASE_PARAMS + 1),
+                                      (testcases + n_tests * N_TEST_CASE_PARAMS + 2)) == 3)
     {
+        LOG ("%d %d %d", *(testcases + n_tests * N_TEST_CASE_PARAMS + 0),
+                         *(testcases + n_tests * N_TEST_CASE_PARAMS + 1),
+                         *(testcases + n_tests * N_TEST_CASE_PARAMS + 2));
         n_tests++;
     }
 
