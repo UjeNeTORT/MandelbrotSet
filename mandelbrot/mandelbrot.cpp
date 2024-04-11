@@ -16,7 +16,8 @@ int MandelbrotUI ()
 
     sf::Sprite sprite (texture);
 
-    while (window.isOpen ()) {
+    while (window.isOpen ())
+    {
         sf::Event event;
 
         while (window.pollEvent (event))
