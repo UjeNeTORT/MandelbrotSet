@@ -114,9 +114,6 @@ int ReadTestCases (FILE *fin, int *testcases)
                                       (testcases + n_tests * N_TEST_CASE_PARAMS + 1),
                                       (testcases + n_tests * N_TEST_CASE_PARAMS + 2)) == 3)
     {
-        LOG ("%d %d %d", *(testcases + n_tests * N_TEST_CASE_PARAMS + 0),
-                         *(testcases + n_tests * N_TEST_CASE_PARAMS + 1),
-                         *(testcases + n_tests * N_TEST_CASE_PARAMS + 2));
         n_tests++;
     }
 

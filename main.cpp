@@ -4,9 +4,9 @@
 #include "./mandelbrot/mandelbrot.h"
 #include "./tests/tester.h"
 
-#define NDEBUG
+// #define NDEBUG
 
-const int MAX_COMMAND_LENGHT            = 200;
+const int  MAX_COMMAND_LENGHT           = 200;
 const char default_test_results_fpath[] = "tests/testresults/res1.csv";
 const char default_test_cases_fpath[]   = "tests/testcases/cases2.txt";
 
@@ -16,8 +16,7 @@ int main (int argc, const char *argv[])
 
     for (int n_argv = 1; n_argv < argc; n_argv++)
     {
-        if (streq (argv[n_argv], "-tp") ||
-            streq (argv[n_argv], "--test-performance"))
+        if (streq (argv[n_argv], "-tp") || streq (argv[n_argv], "--test-performance"))
         {
             u_char *pixels = (u_char *) calloc (WINDOW_WIDTH * WINDOW_HEIGHT * 4, sizeof (u_char));
 
@@ -69,6 +68,16 @@ int main (int argc, const char *argv[])
 
             // skip file name
             argc--;
+            n_argv++;
+        }
+        else if (streq (argv[n_argv], "-ar") || streq (argv[n_argv], "--analyze-results"))
+        {
+            LOG ("analyzing results...");
+
+            system ("python3 analyze_results.py tests/testresults/graph/graph.png tests/testresults/res1.csv \"brute force vs vectorized approach\"\n");
+
+            LOG ("test results (\"%s\") analyzed\n graph: \"%s\"", "tests/testresults/res1.csv", "tests/testresults/graph/graph.png");
+
             n_argv++;
         }
         else

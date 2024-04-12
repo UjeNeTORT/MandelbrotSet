@@ -9,17 +9,24 @@ SFML_STUFF = -l sfml-graphics -l sfml-window -l sfml-system
 AVX_STUFF  = -mavx2
 
 CPP = g++
+OPTIMIZE = -O1
 SRC_NAME  = main
 EXEC_NAME = mandelbrot.out
 
 start: $(SRC_NAME).o common.o mandelbrot.o tests.o
-	$(CPP) $(SRC_NAME).o common.o mandelbrot.o tester.o -o $(EXEC_NAME) $(SFML_STUFF) $(C_FLAGS)
+	$(CPP) $(SRC_NAME).o common.o mandelbrot.o tester.o -o $(EXEC_NAME) $(SFML_STUFF) $(C_FLAGS) $(OPTIMIZE)
 
 run:
 	./$(EXEC_NAME)
 
 test:
 	./$(EXEC_NAME) --test-performance
+
+test-light:
+	./$(EXEC_NAME) -tp tests/testresults/res1.csv tests/testcases/cases_light.txt
+
+analyze:
+	./$(EXEC_NAME) --analyze-results
 
 $(SRC_NAME).o: ./$(SRC_NAME).cpp
 	$(CPP) ./$(SRC_NAME).cpp -c -o $(SRC_NAME).o

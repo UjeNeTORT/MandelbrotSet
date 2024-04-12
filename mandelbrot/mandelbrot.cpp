@@ -135,7 +135,7 @@ void MandelbrotSetBruteForce (u_char *pixels, int x_offset, int y_offset, float 
             float xn = 0, yn = 0, x2 = 0, y2 = 0, xy = 0;
 
             size_t n_iterations = 0;
-            while (n_iterations < MAX_N_ITERATIONS && x2 + y2 < SQR_RADIUS_MAX)
+            for (n_iterations = 0; n_iterations < MAX_N_ITERATIONS && x2 + y2 < SQR_RADIUS_MAX; n_iterations++)
             {
                 xn = x2 - y2 + x0;
                 yn = 2 * xy  + y0;
@@ -143,8 +143,6 @@ void MandelbrotSetBruteForce (u_char *pixels, int x_offset, int y_offset, float 
                 x2 = xn * xn;
                 y2 = yn * yn;
                 xy = xn * yn;
-
-                n_iterations++;
             }
 
             u_char color[4] = {0, 0, 0, 255}; // current pixel color
