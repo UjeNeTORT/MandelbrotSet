@@ -199,6 +199,10 @@ void MandelbrotSetVectorized (u_char *pixels, int x_offset, int y_offset, float 
             __m256 dx_01234567 = _mm256_set1_ps (dx);
             dx_01234567        = _mm256_mul_ps (_01234567, dx_01234567);
 
+            __m256 _2_vec          = _mm256_set1_ps (2);
+            __m256 sqr_rad_vec     = _mm256_set1_ps (SQR_RADIUS_MAX);
+            __m256 max_n_iters_vec = _mm256_set1_ps (MAX_N_ITERATIONS);
+
             __m256 r2_vec = _mm256_setzero_ps ();
             __m256 x2_vec = _mm256_setzero_ps ();
             __m256 y2_vec = _mm256_setzero_ps ();
@@ -217,7 +221,7 @@ void MandelbrotSetVectorized (u_char *pixels, int x_offset, int y_offset, float 
             for (int n_iterations = 0; n_iterations < MAX_N_ITERATIONS && dot_stability_mask; n_iterations++)
             {
                 xn_vec = _mm256_add_ps (_mm256_sub_ps (x2_vec, y2_vec), x0_vec);
-                yn_vec = _mm256_add_ps (_mm256_mul_ps (xy_vec, _mm256_set1_ps (2)), y0_vec);
+                yn_vec = _mm256_add_ps (_mm256_mul_ps (xy_vec, _2_vec), y0_vec);
 
                 x2_vec = _mm256_mul_ps (xn_vec, xn_vec);
                 y2_vec = _mm256_mul_ps (yn_vec, yn_vec);
@@ -225,12 +229,12 @@ void MandelbrotSetVectorized (u_char *pixels, int x_offset, int y_offset, float 
 
                 r2_vec = _mm256_add_ps (x2_vec, y2_vec);
 
-                __m256 cmp_vec     = _mm256_cmp_ps (r2_vec, _mm256_set1_ps (SQR_RADIUS_MAX), _CMP_LT_OQ);
+                __m256 cmp_vec     = _mm256_cmp_ps (r2_vec, sqr_rad_vec, _CMP_LT_OQ);
                 n_iterations_vec   = _mm256_sub_epi32 (n_iterations_vec, _mm256_castps_si256 (cmp_vec));
                 dot_stability_mask = _mm256_movemask_ps (cmp_vec);
             }
 
-            __m256 clr_quotients_vec = _mm256_div_ps (_mm256_cvtepi32_ps (n_iterations_vec), _mm256_set1_ps (MAX_N_ITERATIONS));
+            __m256 clr_quotients_vec = _mm256_div_ps (_mm256_cvtepi32_ps (n_iterations_vec), max_n_iters_vec);
             float *clr_quotients = (float *) &clr_quotients_vec;
 
             for (size_t rel_pixel_n = 0; rel_pixel_n < sizeof (__m256) / sizeof (float); rel_pixel_n++)
