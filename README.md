@@ -159,3 +159,5 @@ python3 analyze_results.py <path_to_graph.png> <test_results_path.csv> <test_res
 
 ## Источники
 
+- Intel Intrinsics Guide
+- https://www.youtube.com/watch?v=FFftmWSzgmk
