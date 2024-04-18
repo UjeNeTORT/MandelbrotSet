@@ -9,12 +9,11 @@ SFML_STUFF = -l sfml-graphics -l sfml-window -l sfml-system
 AVX_STUFF  = -mavx2
 
 CPP = g++
-OPTIMIZE = -O1
 SRC_NAME  = main
 EXEC_NAME = mandelbrot.out
 
 start: $(SRC_NAME).o common.o mandelbrot.o tests.o
-	$(CPP) $(SRC_NAME).o common.o mandelbrot.o tester.o -o $(EXEC_NAME) $(SFML_STUFF) $(C_FLAGS) $(OPTIMIZE)
+	$(CPP) $(SRC_NAME).o common.o mandelbrot.o tester.o -o $(EXEC_NAME) $(SFML_STUFF) $(C_FLAGS) -O3 -g
 
 run:
 	./$(EXEC_NAME)
@@ -22,7 +21,7 @@ run:
 test:
 	./$(EXEC_NAME) --test-performance
 
-test-light:
+test-fast:
 	./$(EXEC_NAME) -tp tests/testresults/res1.csv tests/testcases/cases_light.txt
 
 analyze:
