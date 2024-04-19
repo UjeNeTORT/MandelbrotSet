@@ -178,9 +178,6 @@ void MandelbrotSetBruteForce (u_char *pixels, int x_offset, int y_offset, float 
 
 void MandelbrotSetVectorized (u_char *pixels, int x_offset, int y_offset, float scale)
 {
-    assert (pixels);
-    assert (!dbleq (scale, .0f));
-
     int delta_x = WINDOW_WIDTH  / 2,
         delta_y = WINDOW_HEIGHT / 2;
 
@@ -189,39 +186,36 @@ void MandelbrotSetVectorized (u_char *pixels, int x_offset, int y_offset, float 
     float dx = 1.0f / scale;
     float dy = 1.0f / scale;
 
+    __m256 _01234567   = _mm256_set_ps (7, 6, 5, 4, 3, 2, 1, 0);
+    __m256 _2_vec          = _mm256_set1_ps (2);
+    __m256 sqr_rad_vec     = _mm256_set1_ps (SQR_RADIUS_MAX);
+    __m256 max_n_iters_vec = _mm256_set1_ps (MAX_N_ITERATIONS);
+
     for (size_t y_px = 0; y_px < WINDOW_HEIGHT; y_px++, y0 += dy)
     {
         float x0 = (-delta_x + x_offset) / scale;
 
         for (size_t x_px = 0; x_px < WINDOW_WIDTH; x_px += 8, x0 += dx * 8)
         {
-            __m256 _01234567   = _mm256_set_ps (7, 6, 5, 4, 3, 2, 1, 0);
-            __m256 dx_01234567 = _mm256_set1_ps (dx);
-            dx_01234567        = _mm256_mul_ps (_01234567, dx_01234567);
-
-            __m256 _2_vec          = _mm256_set1_ps (2);
-            __m256 sqr_rad_vec     = _mm256_set1_ps (SQR_RADIUS_MAX);
-            __m256 max_n_iters_vec = _mm256_set1_ps (MAX_N_ITERATIONS);
+            __m256 dx_01234567 = _mm256_mul_ps (_01234567, _mm256_set1_ps (dx));
 
             __m256 r2_vec = _mm256_setzero_ps ();
             __m256 x2_vec = _mm256_setzero_ps ();
             __m256 y2_vec = _mm256_setzero_ps ();
             __m256 xy_vec = _mm256_setzero_ps ();
-            __m256 xn_vec = _mm256_setzero_ps ();
-            __m256 yn_vec = _mm256_setzero_ps ();
 
             __m256 x0_vec = _mm256_set1_ps (x0);
             __m256 y0_vec = _mm256_set1_ps (y0);
 
             x0_vec = _mm256_add_ps (x0_vec, dx_01234567);
 
-            __m256i n_iterations_vec = _mm256_setzero_si256 ();
+            volatile __m256i n_iterations_vec = _mm256_setzero_si256 ();
 
             int dot_stability_mask = -1;
             for (int n_iterations = 0; n_iterations < MAX_N_ITERATIONS && dot_stability_mask; n_iterations++)
             {
-                xn_vec = _mm256_add_ps (_mm256_sub_ps (x2_vec, y2_vec), x0_vec);
-                yn_vec = _mm256_add_ps (_mm256_mul_ps (xy_vec, _2_vec), y0_vec);
+                __m256 xn_vec = _mm256_add_ps (_mm256_sub_ps (x2_vec, y2_vec), x0_vec);
+                __m256 yn_vec = _mm256_add_ps (_mm256_mul_ps (xy_vec, _2_vec), y0_vec);
 
                 x2_vec = _mm256_mul_ps (xn_vec, xn_vec);
                 y2_vec = _mm256_mul_ps (yn_vec, yn_vec);
@@ -243,7 +237,7 @@ void MandelbrotSetVectorized (u_char *pixels, int x_offset, int y_offset, float 
 
                 float clr_coeff = clr_quotients[rel_pixel_n];
 
-                if (!dbleq (clr_coeff, 1))
+                if (clr_coeff != 1)
                 {
                     if (clr_coeff > 0.3)
                     {
